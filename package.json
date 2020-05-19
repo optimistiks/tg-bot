@@ -6,7 +6,8 @@
   "dependencies": {
     "bunyan": "^1.8.12",
     "dotenv": "^8.2.0",
-    "telegraf": "^3.38.0"
+    "telegraf": "^3.38.0",
+    "tslib": "^2.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^4.1.1",
@@ -21,7 +22,6 @@
     "prettier": "2.0.5",
     "rollup": "^2.10.4",
     "ts-node-dev": "^1.0.0-pre.44",
-    "tslib": "^2.0.0",
     "typescript": "^3.9.2"
   },
   "scripts": {
