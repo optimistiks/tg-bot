@@ -4,7 +4,9 @@ import { Telegraf } from "telegraf";
 import ttsMiddleware from "./middleware/ttsMiddleware";
 import command1Middleware from "./middleware/command1Middleware";
 
-const bot = new Telegraf(process.env.BOT_TOKEN as string);
+const bot = new Telegraf(process.env.BOT_TOKEN as string, {
+  username: process.env.BOT_USERNAME,
+});
 
 const middlewares = [ttsMiddleware, command1Middleware];
 
