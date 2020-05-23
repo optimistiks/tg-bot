@@ -27,8 +27,7 @@ jobs:
         yarn build
         npm prune --production
         zip -r lambda.zip .
-        aws lambda update-function-code --function-name tg-bot --zip-file fileb://lambda.zip
+        aws lambda update-function-code --function-name tg-bot --zip-file fileb://lambda.zip --region eu-central-1
       env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  
-          AWS_REGION: ${{ secrets.AWS_REGION }}  
