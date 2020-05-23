@@ -3,14 +3,15 @@ import { TelegrafContext } from "telegraf/typings/context";
 import AWS from "aws-sdk";
 import logger from "../logger";
 
-// AWS credentials are picked up automatically
-// https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-environment.html
-
 const polly = new AWS.Polly();
 
 export default function ttsMiddleware(bot: Telegraf<TelegrafContext>): void {
-  bot.command("voice", (ctx, next) => {
-    const text = ctx.update.message?.text?.replace("/voice ", "").slice(0, 300);
+  bot.command("tts", (ctx, next) => {
+    logger.info("processing /tts command...");
+
+    const text = ctx.update.message?.text
+      ?.replace(/\/\S*\s*/, "")
+      .slice(0, 300);
 
     if (!text) {
       logger.info("no text to synthesize");
