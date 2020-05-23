@@ -11,7 +11,7 @@ export default function ttsMiddleware(bot: Telegraf<TelegrafContext>): void {
 
     const text = ctx.update.message?.text
       ?.replace(/\/\S*\s*/, "")
-      .slice(0, 300);
+      .slice(0, 1000);
 
     if (!text) {
       logger.info("no text to synthesize");
