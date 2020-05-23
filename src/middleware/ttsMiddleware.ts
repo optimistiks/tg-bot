@@ -1,18 +1,14 @@
 import { Telegraf } from "telegraf/typings/telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
-import AWS, { Polly } from "aws-sdk";
 import parentLogger from "../logger";
-
-const polly = new AWS.Polly();
+import textToSpeech from "../utils/textToSpeech";
 
 export default function ttsMiddleware(bot: Telegraf<TelegrafContext>): void {
   bot.command("tts", async (ctx, next) => {
     let logger = parentLogger.child({ messageText: ctx.update.message?.text });
     logger.info("processing /tts command...");
 
-    const text = ctx.update.message?.text
-      ?.replace(/\/\S*\s*/, "")
-      .slice(0, 1000);
+    const text = ctx.update.message?.text?.replace(/\/\S*\s*/, "");
 
     if (!text) {
       logger.info("no text to synthesize");
@@ -22,21 +18,9 @@ export default function ttsMiddleware(bot: Telegraf<TelegrafContext>): void {
     logger = logger.child({ ttsText: text });
 
     try {
-      const audioBuffer = await new Promise<Polly.AudioStream>(
-        (resolve, reject) => {
-          polly.synthesizeSpeech(
-            { Text: text, VoiceId: "Maxim", OutputFormat: "mp3" },
-            (err, data) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve(data.AudioStream);
-            }
-          );
-        }
-      );
+      const buffer = await textToSpeech(text);
       await ctx.replyWithAudio(
-        { source: audioBuffer as Buffer },
+        { source: buffer as Buffer },
         {
           title: text,
           performer: "@MikeLitorisOmgBot",
