@@ -1,6 +1,6 @@
 import { Telegraf } from "telegraf/typings/telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
-import AWS from "aws-sdk";
+import AWS, { Polly } from "aws-sdk";
 import parentLogger from "../logger";
 
 const polly = new AWS.Polly();
@@ -18,25 +18,32 @@ export default function ttsMiddleware(bot: Telegraf<TelegrafContext>): void {
       logger.info("no text to synthesize");
       return next();
     }
+
     logger = logger.child({ ttsText: text });
 
-    await new Promise((resolve) => {
-      polly.synthesizeSpeech(
-        { Text: text, VoiceId: "Maxim", OutputFormat: "mp3" },
-        (err, data) => {
-          if (err) {
-            logger.error(err, "could not synthesize speech");
-            return resolve();
-          }
-          ctx.replyWithAudio(
-            { source: data.AudioStream as Buffer },
-            { title: text }
+    try {
+      const audioBuffer = await new Promise<Polly.AudioStream>(
+        (resolve, reject) => {
+          polly.synthesizeSpeech(
+            { Text: text, VoiceId: "Maxim", OutputFormat: "mp3" },
+            (err, data) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(data.AudioStream);
+            }
           );
-          resolve();
-          logger.info("/tts command completed");
         }
       );
-    });
+      await ctx.replyWithAudio(
+        { source: audioBuffer as Buffer },
+        { title: text }
+      );
+    } catch (err) {
+      logger.error(err, "could not synthesize speech");
+    }
+
+    logger.info("/tts command completed");
 
     return next();
   });
