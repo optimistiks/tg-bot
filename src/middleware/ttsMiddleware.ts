@@ -37,7 +37,11 @@ export default function ttsMiddleware(bot: Telegraf<TelegrafContext>): void {
       );
       await ctx.replyWithAudio(
         { source: audioBuffer as Buffer },
-        { title: text }
+        {
+          title: text,
+          performer: "@MikeLitorisOmgBot",
+          caption: "@MikeLitorisOmgBot",
+        }
       );
     } catch (err) {
       logger.error(err, "could not synthesize speech");
