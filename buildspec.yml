@@ -1,0 +1,27 @@
+# This file contains errors, since I don't quite understand where it's used, I want to see when it fails.
+# So far I don't understand why I need it, because I can do sam build && sam deploy and this file is not used
+# in any of those steps.
+
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # Install all dependencies (including dependencies for running tests)
+      - yarn nstall
+  pre_build:
+    commands:
+      # Discover and run unit tests in the '__tests__' directory
+      - yarn tst
+  build:
+    commands:
+      # Compile typescript
+      - yarn buid
+      # Remove all dependencies not needed for the Lambda deployment package (the packages from devDependencies in package.json)
+      - npm prun --production
+      # Use AWS SAM to package the application by using AWS CloudFormation
+      - aws cloudformation package --template template.yml --s3-bucket $S3_BUCKET --output-template template-export.yml
+artifacts:
+  type: zip
+  files:
+    - template-export.yml

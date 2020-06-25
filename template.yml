@@ -1,0 +1,86 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  tgBotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+  tgBotS3Bucket:
+    Type: AWS::S3::Bucket
+  tgBotCodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref tgBotS3Bucket
+        Type: S3
+      RoleArn: !GetAtt tgBotRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: tgBotSourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: "1"
+              Configuration:
+                Owner: optimistiks
+                Repo: tg-bot
+                PollForSourceChanges: "false"
+                Branch: master
+                OAuthToken: "{{resolve:ssm:/tg-bot/GITHUB_OAUTH_TOKEN:1}}"
+              OutputArtifacts:
+                - Name: tgBotSourceArtifact
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: tgBotBuildAction
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: tgBotBuildProject
+              InputArtifacts:
+                - Name: tgBotSourceArtifact
+              OutputArtifacts:
+                - Name: tgBotBuildArtifact
+              RunOrder: 2
+  tgBotCodePipelineWebhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: "{{resolve:ssm:/tg-bot/GITHUB_OAUTH_TOKEN:1}}"
+      Filters:
+        - JsonPath: "$.ref"
+          MatchEquals: refs/heads/master
+      TargetPipeline: !Ref tgBotCodePipeline
+      TargetAction: tgBotSourceAction
+      Name: tgBotCodePipelineWebhook
+      TargetPipelineVersion: !GetAtt tgBotCodePipeline.Version
+      RegisterWithThirdParty: true
+  # tgBotFunction:
+  #  Type: AWS::Serverless::Function
+  #  Properties:
+  #    Handler: dist/handlers/tgBot.handler
+  #    Runtime: nodejs12.x
+  # Environment:
+  #   Variables:
+  #     BOT_TOKEN: 1136204101:AAH0TjXvtNj30iiSZDwGtlfgmBMxc4PxL2o
+  # Events:
+  #   tgBotApiEvent:
+  #     Type: Api
+  #     Properties:
+  #       Method: POST
+  #       Path: /1136204101
