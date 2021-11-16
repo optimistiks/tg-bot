@@ -7,7 +7,7 @@
     "dist"
   ],
   "dependencies": {
-    "aws-sdk": "^2.683.0",
+    "aws-sdk": "^2.814.0",
     "bunyan": "^1.8.12",
     "dotenv": "^8.2.0",
     "telegraf": "^3.38.0"
